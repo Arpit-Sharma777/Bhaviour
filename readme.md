@@ -25,33 +25,6 @@ For every incoming transaction, the system **instantly decides**:
 
 ## 🏗️ System Architecture
 
-# 🚨 Real-Time Fraud Detection System (Hybrid ML)
-
-This project is a **real-time fraud detection system** built using a **hybrid architecture** combining **rule-based logic**, **supervised machine learning**, and **unsupervised anomaly detection**.  
-It is designed to simulate **bank/fintech-grade transaction monitoring**, not a toy or interview-only project.
-
----
-
-## 🧠 What This System Does
-
-For every incoming transaction, the system **instantly decides**:
-
-- ✅ **ALLOW** – normal transaction  
-- ⚠️ **FLAG** – suspicious, requires human verification  
-- ❌ **BLOCK** – confirmed fraud risk  
-
-### Fraud patterns detected:
-- Transaction velocity fraud (multiple txns in short time)
-- Geo-location change fraud
-- Sudden amount spike fraud
-- Midnight/unusual-time transactions
-- Known fraud patterns (supervised ML)
-- Unknown/new fraud patterns (unsupervised ML)
-
----
-
-## 🏗️ System Architecture
-
 Client / Banking App
 |
 v
