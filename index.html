@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bhaviour Bank | Transfer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: white; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.2); padding: 30px; width: 400px; }
+        .form-control, .form-select { background: rgba(255, 255, 255, 0.2); border: none; color: white; }
+        .form-control:focus, .form-select:focus { background: rgba(255, 255, 255, 0.3); color: white; box-shadow: none; }
+        ::placeholder { color: rgba(255, 255, 255, 0.6); }
+        .btn-pay { width: 100%; background: #00d2ff; border: none; font-weight: bold; padding: 10px; margin-top: 15px; }
+        .btn-pay:hover { background: #0099ff; }
+        #result-area { display: none; margin-top: 20px; padding: 15px; border-radius: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="glass-card">
+        <h3 class="text-center mb-4">💸 Quick Transfer</h3>
+        
+        <form id="payment-form">
+            <div class="mb-3">
+                <label>User ID</label>
+                <select class="form-select" id="user_id">
+                    <option value="USR_10001">User A (USR_10001)</option>
+                    <option value="USR_10002">User B (USR_10002)</option>
+                    <option value="USR_10003">User C (USR_10003)</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label>Amount ($)</label>
+                <input type="number" class="form-control" id="amount" placeholder="Enter amount" required>
+            </div>
+
+            <div class="mb-3">
+                <label>Location</label>
+                <select class="form-select" id="country">
+                    <option value="India">India 🇮🇳</option>
+                    <option value="USA">USA 🇺🇸</option>
+                    <option value="Germany">Germany 🇩🇪</option>
+                    <option value="China">China 🇨🇳</option>
+                    <option value="Russia">Russia 🇷🇺</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-pay">Transfer Now</button>
+        </form>
+
+        <div id="result-area"></div>
+    </div>
+
+    <script>
+        document.getElementById('payment-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const payload = {
+                user_id: document.getElementById('user_id').value,
+                transaction_id: "TXN_" + Math.floor(Math.random() * 100000),
+                amount: parseFloat(document.getElementById('amount').value),
+                location_country: document.getElementById('country').value,
+                transaction_time: new Date().toISOString()
+            };
+
+            const resultArea = document.getElementById('result-area');
+            resultArea.style.display = 'block';
+            resultArea.innerHTML = 'Processing...';
+            resultArea.className = 'bg-secondary text-white';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+
+                if (data.action === "ALLOW") {
+                    resultArea.className = 'bg-success text-white';
+                    resultArea.innerHTML = `✅ <b>Success!</b><br>Transaction Approved`;
+                } else if (data.action === "FLAG") {
+                    resultArea.className = 'bg-warning text-dark';
+                    resultArea.innerHTML = `⚠️ <b>Warning</b><br>${data.reason}`;
+                } else {
+                    resultArea.className = 'bg-danger text-white';
+                    resultArea.innerHTML = `❌ <b>BLOCKED</b><br>${data.reason}`;
+                }
+
+            } catch (err) {
+                console.error(err);
+                resultArea.innerHTML = "Error connecting to server.";
+            }
+        });
+    </script>
+</body>
+</html>
