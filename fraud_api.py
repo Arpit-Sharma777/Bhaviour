@@ -10,7 +10,7 @@ import sqlite3
 
 # ---------------- CONFIG ----------------
 # Ensure Redis is running: redis-server
-r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
 DB_NAME = "fraud_logs.db"
 
 # ---------------- Load Models ----------------
