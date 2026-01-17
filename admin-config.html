@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Configuration Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .sidebar h5 {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 10px;
+        }
+
+        .nav-link {
+            color: #555;
+            padding: 10px 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: var(--secondary);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .main-content.active {
+            display: block;
+        }
+
+        .section-title {
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--secondary);
+        }
+
+        .config-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .config-item {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .config-label {
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-badge {
+            display: inline-block;
+            background: var(--secondary);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-left: 5px;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px 12px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .btn-primary {
+            background: var(--secondary);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success);
+            border: none;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .feature-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .feature-toggle input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .toggle-label {
+            flex-grow: 1;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--primary);
+        }
+
+        .toggle-description {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .alert {
+            border: none;
+            border-radius: 6px;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            border-left-color: var(--success);
+        }
+
+        .alert-danger {
+            border-left-color: var(--danger);
+        }
+
+        .alert-warning {
+            border-left-color: var(--warning);
+        }
+
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            color: white;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preset-btn {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--secondary);
+            background: #f0f7ff;
+        }
+
+        .preset-strict {
+            border-left: 4px solid var(--danger);
+        }
+
+        .preset-balanced {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .preset-lenient {
+            border-left: 4px solid var(--success);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .log-entry {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .log-time {
+            font-size: 0.85rem;
+            color: #999;
+            font-family: monospace;
+        }
+
+        .log-action {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .log-details {
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: var(--success);
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: var(--danger);
+        }
+
+        @media (max-width: 768px) {
+            .config-item {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark mb-4">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="bi bi-shield-lock"></i> Fraud Detection Admin Panel
+            </span>
+            <span class="text-light">
+                <i class="bi bi-circle-fill" id="status-dot" style="color: #27ae60; margin-right: 10px;"></i>
+                <span id="status-text">Connected</span>
+            </span>
+        </div>
+    </nav>
+
+    <div class="container-fluid mb-5">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3">
+                <div class="sidebar">
+                    <h5><i class="bi bi-menu-button"></i> Navigation</h5>
+                    <div class="nav-link active" onclick="switchTab('overview')">
+                        <i class="bi bi-speedometer2"></i> Overview
+                    </div>
+                    <div class="nav-link" onclick="switchTab('thresholds')">
+                        <i class="bi bi-sliders"></i> Thresholds
+                    </div>
+                    <div class="nav-link" onclick="switchTab('features')">
+                        <i class="bi bi-toggles2"></i> Feature Toggles
+                    </div>
+                    <div class="nav-link" onclick="switchTab('presets')">
+                        <i class="bi bi-bookmark"></i> Presets
+                    </div>
+                    <div class="nav-link" onclick="switchTab('logs')">
+                        <i class="bi bi-journal-text"></i> Audit Logs
+                    </div>
+                    <div class="nav-link" onclick="switchTab('patterns')">
+                        <i class="bi bi-diagram-3"></i> Anomaly Patterns
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <!-- Overview Tab -->
+                <div id="overview" class="main-content active">
+                    <h2 class="section-title"><i class="bi bi-speedometer2"></i> Configuration Overview</h2>
+                    
+                    <div class="card">
+                        <div class="card-header">Current Configuration Status</div>
+                        <div class="card-body">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="stat-total-txn">0</div>
+                                    <div class="stat-label">Total Transactions</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="stat-blocked">0</div>
+                                    <div class="stat-label">Blocked</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="stat-flagged">0</div>
+                                    <div class="stat-label">Flagged</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="stat-allowed">0</div>
+                                    <div class="stat-label">Allowed</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-header">Active Configuration</div>
+                        <div class="card-body" id="current-config">
+                            <p class="text-muted">Loading configuration...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thresholds Tab -->
+                <div id="thresholds" class="main-content">
+                    <h2 class="section-title"><i class="bi bi-sliders"></i> Fraud Detection Thresholds</h2>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Adjust these parameters to control fraud detection sensitivity
+                    </div>
+
+                    <form id="threshold-form">
+                        <div class="config-group">
+                            <h5>Velocity Detection</h5>
+                            <div class="config-item">
+                                <label class="config-label">
+                                    Velocity Threshold
+                                    <span class="info-badge">Transactions per 10m</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="velocity_threshold" min="1" max="50" value="3">
+                                    <span class="input-group-text" id="velocity_display">3</span>
+                                </div>
+                            </div>
+                            <small class="text-muted">Block if user makes more than this many transactions in 10 minutes</small>
+                        </div>
+
+                        <div class="config-group">
+                            <h5>ML Model Thresholds</h5>
+                            <div class="config-item">
+                                <label class="config-label">
+                                    High Risk Threshold
+                                    <span class="info-badge">0.0 - 1.0</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="high_risk_threshold" min="0" max="1" step="0.01" value="0.9">
+                                    <span class="input-group-text" id="risk_display">0.9</span>
+                                </div>
+                            </div>
+                            <small class="text-muted">Probability above this → Block</small>
+
+                            <div class="config-item mt-3">
+                                <label class="config-label">
+                                    Flag Risk Threshold
+                                    <span class="info-badge">0.0 - 1.0</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="flag_risk_threshold" min="0" max="1" step="0.01" value="0.8">
+                                    <span class="input-group-text" id="flag_display">0.8</span>
+                                </div>
+                            </div>
+                            <small class="text-muted">Probability between flag and high risk → Flag for review</small>
+                        </div>
+
+                        <div class="config-group">
+                            <h5>Amount Detection</h5>
+                            <div class="config-item">
+                                <label class="config-label">
+                                    Amount Spike Multiplier
+                                    <span class="info-badge">x times baseline</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="amount_spike_multiplier" min="1" max="10" step="0.5" value="3">
+                                    <span class="input-group-text" id="spike_display">3.0x</span>
+                                </div>
+                            </div>
+                            <small class="text-muted">Block if amount exceeds user baseline by this multiplier</small>
+
+                            <div class="config-item mt-3">
+                                <label class="config-label">
+                                    Baseline Amount
+                                    <span class="info-badge">$</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="baseline_amount" min="100" max="50000" step="100" value="1500">
+                                    <span class="input-group-text" id="baseline_display">$1500</span>
+                                </div>
+                            </div>
+                            <small class="text-muted">Reference amount for calculating spikes</small>
+                        </div>
+
+                        <div class="config-group">
+                            <h5>Anomaly Detection</h5>
+                            <div class="config-item">
+                                <label class="config-label">
+                                    Anomaly Score Threshold
+                                    <span class="info-badge">0.0 - 1.0</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="anomaly_score_threshold" min="0" max="1" step="0.01" value="0.03">
+                                    <span class="input-group-text" id="anomaly_display">0.03</span>
+                                </div>
+                            </div>
+                            <small class="text-muted">Flag if Isolation Forest anomaly score exceeds this</small>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="button" class="btn btn-primary btn-lg" onclick="saveThresholds()">
+                                <i class="bi bi-check-circle"></i> Save Threshold Configuration
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Features Tab -->
+                <div id="features" class="main-content">
+                    <h2 class="section-title"><i class="bi bi-toggles2"></i> Feature Toggles</h2>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Enable/disable individual fraud detection methods
+                    </div>
+
+                    <div class="feature-toggle">
+                        <input type="checkbox" id="velocity" checked onchange="updateToggle('velocity')">
+                        <div style="flex-grow: 1;">
+                            <label class="toggle-label" for="velocity">Velocity Detection</label>
+                            <div class="toggle-description">Block rapid consecutive transactions</div>
+                        </div>
+                        <span class="status-badge status-active" id="velocity-badge">Active</span>
+                    </div>
+
+                    <div class="feature-toggle">
+                        <input type="checkbox" id="geo_location" checked onchange="updateToggle('geo_location')">
+                        <div style="flex-grow: 1;">
+                            <label class="toggle-label" for="geo_location">Geo-Location Check</label>
+                            <div class="toggle-description">Detect impossible travel scenarios</div>
+                        </div>
+                        <span class="status-badge status-active" id="geo_location-badge">Active</span>
+                    </div>
+
+                    <div class="feature-toggle">
+                        <input type="checkbox" id="amount_spike" checked onchange="updateToggle('amount_spike')">
+                        <div style="flex-grow: 1;">
+                            <label class="toggle-label" for="amount_spike">Amount Spike Detection</label>
+                            <div class="toggle-description">Flag unusual high-value transactions</div>
+                        </div>
+                        <span class="status-badge status-active" id="amount_spike-badge">Active</span>
+                    </div>
+
+                    <div class="feature-toggle">
+                        <input type="checkbox" id="midnight" checked onchange="updateToggle('midnight')">
+                        <div style="flex-grow: 1;">
+                            <label class="toggle-label" for="midnight">Midnight Hour Detection</label>
+                            <div class="toggle-description">Flag transactions between midnight-4am</div>
+                        </div>
+                        <span class="status-badge status-active" id="midnight-badge">Active</span>
+                    </div>
+
+                    <div class="feature-toggle">
+                        <input type="checkbox" id="ml_risk_score" checked onchange="updateToggle('ml_risk_score')">
+                        <div style="flex-grow: 1;">
+                            <label class="toggle-label" for="ml_risk_score">ML Risk Scoring</label>
+                            <div class="toggle-description">XGBoost machine learning model predictions</div>
+                        </div>
+                        <span class="status-badge status-active" id="ml_risk_score-badge">Active</span>
+                    </div>
+
+                    <div class="feature-toggle">
+                        <input type="checkbox" id="anomaly_detection" checked onchange="updateToggle('anomaly_detection')">
+                        <div style="flex-grow: 1;">
+                            <label class="toggle-label" for="anomaly_detection">Anomaly Detection</label>
+                            <div class="toggle-description">Isolation Forest anomaly scoring</div>
+                        </div>
+                        <span class="status-badge status-active" id="anomaly_detection-badge">Active</span>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="button" class="btn btn-success btn-lg" onclick="saveFeatures()">
+                            <i class="bi bi-check-circle"></i> Save Feature Configuration
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Presets Tab -->
+                <div id="presets" class="main-content">
+                    <h2 class="section-title"><i class="bi bi-bookmark"></i> Configuration Presets</h2>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-lightbulb"></i> Quick-apply pre-configured profiles for different use cases
+                    </div>
+
+                    <button class="preset-btn preset-strict" onclick="applyPreset('strict')">
+                        <div style="text-align: left;">
+                            <h5><i class="bi bi-shield-check"></i> STRICT (High Security)</h5>
+                            <small>Maximum fraud detection - tolerates false positives</small>
+                            <div style="margin-top: 10px; font-size: 0.85rem; color: #666;">
+                                • Velocity: 2 txn/10m
+                                • Risk threshold: 0.7
+                                • All checks enabled
+                            </div>
+                        </div>
+                    </button>
+
+                    <button class="preset-btn preset-balanced" onclick="applyPreset('balanced')">
+                        <div style="text-align: left;">
+                            <h5><i class="bi bi-scale"></i> BALANCED (Recommended)</h5>
+                            <small>Moderate fraud detection with acceptable false positives</small>
+                            <div style="margin-top: 10px; font-size: 0.85rem; color: #666;">
+                                • Velocity: 3 txn/10m
+                                • Risk threshold: 0.8
+                                • All checks enabled
+                            </div>
+                        </div>
+                    </button>
+
+                    <button class="preset-btn preset-lenient" onclick="applyPreset('lenient')">
+                        <div style="text-align: left;">
+                            <h5><i class="bi bi-hand-thumbs-up"></i> LENIENT (Low Friction)</h5>
+                            <small>Minimal fraud detection - prioritizes user experience</small>
+                            <div style="margin-top: 10px; font-size: 0.85rem; color: #666;">
+                                • Velocity: 5 txn/10m
+                                • Risk threshold: 0.9
+                                • Only critical checks enabled
+                            </div>
+                        </div>
+                    </button>
+
+                    <div id="preset-message" class="alert alert-info mt-3" style="display: none;">
+                        <i class="bi bi-check-circle"></i> <span id="preset-text"></span>
+                    </div>
+                </div>
+
+                <!-- Logs Tab -->
+                <div id="logs" class="main-content">
+                    <h2 class="section-title"><i class="bi bi-journal-text"></i> Audit Logs</h2>
+                    
+                    <div class="card">
+                        <div class="card-header">Recent Admin Actions</div>
+                        <div class="card-body" id="logs-container">
+                            <p class="text-muted">Loading audit logs...</p>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-outline-danger" onclick="clearLogs()">
+                            <i class="bi bi-trash"></i> Clear Old Logs (30+ days)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Patterns Tab -->
+                <div id="patterns" class="main-content">
+                    <h2 class="section-title"><i class="bi bi-diagram-3"></i> Anomaly Patterns</h2>
+                    
+                    <form id="pattern-form" class="mb-4">
+                        <div class="card">
+                            <div class="card-header">Add New Pattern</div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Pattern Name</label>
+                                    <input type="text" class="form-control" id="pattern_name" placeholder="e.g., weekend_spike" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Pattern Type</label>
+                                    <select class="form-select" id="pattern_type" required>
+                                        <option value="">Select type...</option>
+                                        <option value="amount">Amount-based</option>
+                                        <option value="velocity">Velocity-based</option>
+                                        <option value="time">Time-based</option>
+                                        <option value="location">Location-based</option>
+                                        <option value="device">Device-based</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Description</label>
+                                    <textarea class="form-control" id="pattern_description" rows="3" placeholder="Describe this anomaly pattern..." required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Threshold Value</label>
+                                    <input type="number" class="form-control" id="pattern_threshold" step="0.01" placeholder="e.g., 10000 for amount" required>
+                                </div>
+                                <button type="button" class="btn btn-primary" onclick="addPattern()">
+                                    <i class="bi bi-plus-circle"></i> Add Pattern
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="card">
+                        <div class="card-header">Existing Patterns</div>
+                        <div class="card-body" id="patterns-container">
+                            <p class="text-muted">Loading patterns...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    <div id="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const ADMIN_TOKEN = "your-secure-admin-token";
+        const API_BASE = "http://localhost:8000";
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.main-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.closest('.nav-link').classList.add('active');
+            
+            // Load data for specific tabs
+            if (tabName === 'overview') loadOverview();
+            else if (tabName === 'logs') loadLogs();
+            else if (tabName === 'patterns') loadPatterns();
+            else if (tabName === 'thresholds') loadThresholds();
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertId = 'alert-' + Date.now();
+            const alertHTML = `
+                <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.getElementById('alert-container').innerHTML = alertHTML;
+            setTimeout(() => {
+                const el = document.getElementById(alertId);
+                if (el) el.remove();
+            }, 5000);
+        }
+
+        async function loadOverview() {
+            try {
+                const [config, stats] = await Promise.all([
+                    fetch(`${API_BASE}/api/v1/config`).then(r => r.json()),
+                    fetch(`${API_BASE}/api/v1/stats`).then(r => r.json())
+                ]);
+                
+                document.getElementById('stat-total-txn').textContent = stats.total_transactions || 0;
+                document.getElementById('stat-blocked').textContent = stats.blocked || 0;
+                document.getElementById('stat-flagged').textContent = stats.flagged || 0;
+                document.getElementById('stat-allowed').textContent = stats.allowed || 0;
+                
+                let configHTML = '<pre>' + JSON.stringify(config, null, 2) + '</pre>';
+                document.getElementById('current-config').innerHTML = configHTML;
+            } catch (e) {
+                showAlert('Failed to load overview: ' + e.message, 'danger');
+            }
+        }
+
+        async function loadThresholds() {
+            try {
+                const config = await fetch(`${API_BASE}/api/v1/config`).then(r => r.json());
+                document.getElementById('velocity_threshold').value = config.velocity_threshold;
+                document.getElementById('high_risk_threshold').value = config.high_risk_threshold;
+                document.getElementById('flag_risk_threshold').value = config.flag_risk_threshold;
+                document.getElementById('amount_spike_multiplier').value = config.amount_spike_multiplier;
+                document.getElementById('baseline_amount').value = config.baseline_amount;
+                document.getElementById('anomaly_score_threshold').value = config.anomaly_score_threshold;
+                
+                // Update displays
+                document.getElementById('velocity_display').textContent = config.velocity_threshold;
+                document.getElementById('risk_display').textContent = config.high_risk_threshold;
+                document.getElementById('flag_display').textContent = config.flag_risk_threshold;
+                document.getElementById('spike_display').textContent = config.amount_spike_multiplier + 'x';
+                document.getElementById('baseline_display').textContent = '$' + config.baseline_amount;
+                document.getElementById('anomaly_display').textContent = config.anomaly_score_threshold;
+            } catch (e) {
+                showAlert('Failed to load thresholds: ' + e.message, 'danger');
+            }
+        }
+
+        async function saveThresholds() {
+            try {
+                const updates = {
+                    velocity_threshold: parseInt(document.getElementById('velocity_threshold').value),
+                    high_risk_threshold: parseFloat(document.getElementById('high_risk_threshold').value),
+                    flag_risk_threshold: parseFloat(document.getElementById('flag_risk_threshold').value),
+                    amount_spike_multiplier: parseFloat(document.getElementById('amount_spike_multiplier').value),
+                    baseline_amount: parseFloat(document.getElementById('baseline_amount').value),
+                    anomaly_score_threshold: parseFloat(document.getElementById('anomaly_score_threshold').value)
+                };
+
+                const response = await fetch(`${API_BASE}/api/admin/config`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${ADMIN_TOKEN}`
+                    },
+                    body: JSON.stringify(updates)
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+                showAlert('✅ Thresholds saved successfully!', 'success');
+            } catch (e) {
+                showAlert('❌ Failed to save thresholds: ' + e.message, 'danger');
+            }
+        }
+
+        function updateToggle(feature) {
+            const element = document.getElementById(feature);
+            const badge = document.getElementById(feature + '-badge');
+            if (element.checked) {
+                badge.textContent = 'Active';
+                badge.className = 'status-badge status-active';
+            } else {
+                badge.textContent = 'Inactive';
+                badge.className = 'status-badge status-inactive';
+            }
+        }
+
+        async function saveFeatures() {
+            try {
+                const enabled_checks = {
+                    velocity: document.getElementById('velocity').checked,
+                    geo_location: document.getElementById('geo_location').checked,
+                    amount_spike: document.getElementById('amount_spike').checked,
+                    midnight: document.getElementById('midnight').checked,
+                    ml_risk_score: document.getElementById('ml_risk_score').checked,
+                    anomaly_detection: document.getElementById('anomaly_detection').checked
+                };
+
+                const response = await fetch(`${API_BASE}/api/admin/config`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${ADMIN_TOKEN}`
+                    },
+                    body: JSON.stringify({ enabled_checks })
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+                showAlert('✅ Feature toggles saved successfully!', 'success');
+            } catch (e) {
+                showAlert('❌ Failed to save features: ' + e.message, 'danger');
+            }
+        }
+
+        async function applyPreset(presetName) {
+            const presets = {
+                strict: {
+                    velocity_threshold: 2,
+                    high_risk_threshold: 0.7,
+                    flag_risk_threshold: 0.6,
+                    amount_spike_multiplier: 2,
+                    enabled_checks: { velocity: true, geo_location: true, amount_spike: true, midnight: true, ml_risk_score: true, anomaly_detection: true }
+                },
+                balanced: {
+                    velocity_threshold: 3,
+                    high_risk_threshold: 0.8,
+                    flag_risk_threshold: 0.7,
+                    amount_spike_multiplier: 3,
+                    enabled_checks: { velocity: true, geo_location: true, amount_spike: true, midnight: true, ml_risk_score: true, anomaly_detection: true }
+                },
+                lenient: {
+                    velocity_threshold: 5,
+                    high_risk_threshold: 0.9,
+                    flag_risk_threshold: 0.85,
+                    amount_spike_multiplier: 5,
+                    enabled_checks: { velocity: false, geo_location: false, amount_spike: true, midnight: false, ml_risk_score: true, anomaly_detection: false }
+                }
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/config`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${ADMIN_TOKEN}`
+                    },
+                    body: JSON.stringify(presets[presetName])
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+                
+                const presetNames = { strict: 'STRICT', balanced: 'BALANCED', lenient: 'LENIENT' };
+                document.getElementById('preset-text').textContent = `${presetNames[presetName]} preset applied successfully!`;
+                document.getElementById('preset-message').style.display = 'block';
+                showAlert('✅ ' + presetNames[presetName] + ' preset applied!', 'success');
+            } catch (e) {
+                showAlert('❌ Failed to apply preset: ' + e.message, 'danger');
+            }
+        }
+
+        async function loadLogs() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/logs`, {
+                    headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+                });
+                const logs = await response.json();
+                
+                let logsHTML = '';
+                if (logs.length === 0) {
+                    logsHTML = '<p class="text-muted">No admin logs yet</p>';
+                } else {
+                    logs.forEach(log => {
+                        logsHTML += `
+                            <div class="log-entry">
+                                <div class="log-time">${new Date(log.timestamp).toLocaleString()}</div>
+                                <div class="log-action">${log.admin_action}</div>
+                                <div class="log-details">${log.details || 'N/A'}</div>
+                            </div>
+                        `;
+                    });
+                }
+                document.getElementById('logs-container').innerHTML = logsHTML;
+            } catch (e) {
+                showAlert('Failed to load logs: ' + e.message, 'danger');
+            }
+        }
+
+        async function loadPatterns() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/anomaly-patterns`, {
+                    headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+                });
+                const patterns = await response.json();
+                
+                let patternsHTML = '';
+                if (patterns.length === 0) {
+                    patternsHTML = '<p class="text-muted">No custom patterns yet</p>';
+                } else {
+                    patterns.forEach(pattern => {
+                        patternsHTML += `
+                            <div class="card mb-2">
+                                <div class="card-body">
+                                    <h6>${pattern.pattern_name}</h6>
+                                    <p class="text-muted mb-1">${pattern.pattern_type} | Threshold: ${pattern.threshold_value}</p>
+                                    <small>${pattern.description}</small>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                document.getElementById('patterns-container').innerHTML = patternsHTML;
+            } catch (e) {
+                showAlert('Failed to load patterns: ' + e.message, 'danger');
+            }
+        }
+
+        async function addPattern() {
+            try {
+                const pattern = {
+                    pattern_name: document.getElementById('pattern_name').value,
+                    pattern_type: document.getElementById('pattern_type').value,
+                    description: document.getElementById('pattern_description').value,
+                    threshold_value: parseFloat(document.getElementById('pattern_threshold').value)
+                };
+
+                const response = await fetch(`${API_BASE}/api/admin/anomaly-pattern`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${ADMIN_TOKEN}`
+                    },
+                    body: JSON.stringify(pattern)
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+                
+                document.getElementById('pattern-form').reset();
+                showAlert('✅ Pattern added successfully!', 'success');
+                loadPatterns();
+            } catch (e) {
+                showAlert('❌ Failed to add pattern: ' + e.message, 'danger');
+            }
+        }
+
+        async function clearLogs() {
+            if (!confirm('Are you sure? This will clear logs older than 30 days.')) return;
+            showAlert('Logs clearing feature coming soon', 'warning');
+        }
+
+        // Load initial data
+        window.addEventListener('load', () => {
+            loadOverview();
+            setInterval(loadOverview, 10000); // Refresh every 10 seconds
+        });
+    </script>
+</body>
+</html>

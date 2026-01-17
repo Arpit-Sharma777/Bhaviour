@@ -56,3 +56,9 @@ dump.rdb
 # Load testing outputs
 # =========================
 locust_reports/
+
+# =========================
+# Documentation Files
+# =========================
+*.md
+
