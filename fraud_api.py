@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Header
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -519,9 +519,15 @@ async def get_stats(days: int = Query(1, ge=1, le=30)):
 
 # 10. Update Configuration (Admin Only)
 @app.post("/api/admin/config")
-async def update_config(config_update: ConfigUpdate, admin_token: str = Query(...)):
+async def update_config(config_update: ConfigUpdate, authorization: str = Header(None)):
     """Update fraud detection configuration."""
     global CURRENT_CONFIG
+    
+    # Extract token from Authorization header
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+    
+    admin_token = authorization.replace("Bearer ", "")
     
     # Simple token validation (implement proper auth in production)
     if admin_token != "your-secure-admin-token":
@@ -552,8 +558,13 @@ async def update_config(config_update: ConfigUpdate, admin_token: str = Query(..
 
 # 11. Get Admin Logs
 @app.get("/api/admin/logs")
-async def get_admin_logs(limit: int = Query(50, le=500), admin_token: str = Query(...)):
+async def get_admin_logs(limit: int = Query(50, le=500), authorization: str = Header(None)):
     """Get admin action logs."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+    
+    admin_token = authorization.replace("Bearer ", "")
+    
     if admin_token != "your-secure-admin-token":
         raise HTTPException(status_code=403, detail="Unauthorized")
     
@@ -576,8 +587,13 @@ async def get_admin_logs(limit: int = Query(50, le=500), admin_token: str = Quer
 
 # 12. Add Custom Anomaly Pattern (Admin)
 @app.post("/api/admin/anomaly-pattern")
-async def add_anomaly_pattern(pattern: AnomalyPattern, admin_token: str = Query(...)):
+async def add_anomaly_pattern(pattern: AnomalyPattern, authorization: str = Header(None)):
     """Add custom anomaly detection pattern."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+    
+    admin_token = authorization.replace("Bearer ", "")
+    
     if admin_token != "your-secure-admin-token":
         raise HTTPException(status_code=403, detail="Unauthorized")
     
@@ -603,8 +619,13 @@ async def add_anomaly_pattern(pattern: AnomalyPattern, admin_token: str = Query(
 
 # 13. Get All Anomaly Patterns (Admin)
 @app.get("/api/admin/anomaly-patterns")
-async def get_anomaly_patterns(admin_token: str = Query(...)):
+async def get_anomaly_patterns(authorization: str = Header(None)):
     """Get all custom anomaly patterns."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+    
+    admin_token = authorization.replace("Bearer ", "")
+    
     if admin_token != "your-secure-admin-token":
         raise HTTPException(status_code=403, detail="Unauthorized")
     
@@ -627,8 +648,13 @@ async def get_anomaly_patterns(admin_token: str = Query(...)):
 
 # 14. Admin Dashboard Stats
 @app.get("/api/admin/dashboard")
-async def admin_dashboard(admin_token: str = Query(...)):
+async def admin_dashboard(authorization: str = Header(None)):
     """Get comprehensive admin dashboard data."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+    
+    admin_token = authorization.replace("Bearer ", "")
+    
     if admin_token != "your-secure-admin-token":
         raise HTTPException(status_code=403, detail="Unauthorized")
     

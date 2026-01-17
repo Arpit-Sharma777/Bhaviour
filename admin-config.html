@@ -711,6 +711,8 @@
             else if (tabName === 'logs') loadLogs();
             else if (tabName === 'patterns') loadPatterns();
             else if (tabName === 'thresholds') loadThresholds();
+            else if (tabName === 'features') loadFeatures();
+            else if (tabName === 'presets') loadPresets();
         }
 
         function showAlert(message, type = 'success') {
@@ -730,10 +732,24 @@
 
         async function loadOverview() {
             try {
-                const [config, stats] = await Promise.all([
-                    fetch(`${API_BASE}/api/v1/config`).then(r => r.json()),
-                    fetch(`${API_BASE}/api/v1/stats`).then(r => r.json())
+                console.log('Loading overview...');
+                const [configResponse, statsResponse] = await Promise.all([
+                    fetch(`${API_BASE}/api/v1/config`).then(r => {
+                        console.log('Config response:', r.status);
+                        if (!r.ok) throw new Error(`Config fetch failed: ${r.status}`);
+                        return r.json();
+                    }),
+                    fetch(`${API_BASE}/api/v1/stats`).then(r => {
+                        console.log('Stats response:', r.status);
+                        if (!r.ok) throw new Error(`Stats fetch failed: ${r.status}`);
+                        return r.json();
+                    })
                 ]);
+                
+                const config = configResponse.config || configResponse;
+                const stats = statsResponse.stats || statsResponse;
+                console.log('Loaded config:', config);
+                console.log('Loaded stats:', stats);
                 
                 document.getElementById('stat-total-txn').textContent = stats.total_transactions || 0;
                 document.getElementById('stat-blocked').textContent = stats.blocked || 0;
@@ -743,29 +759,83 @@
                 let configHTML = '<pre>' + JSON.stringify(config, null, 2) + '</pre>';
                 document.getElementById('current-config').innerHTML = configHTML;
             } catch (e) {
+                console.error('loadOverview error:', e);
                 showAlert('Failed to load overview: ' + e.message, 'danger');
             }
         }
 
         async function loadThresholds() {
             try {
-                const config = await fetch(`${API_BASE}/api/v1/config`).then(r => r.json());
-                document.getElementById('velocity_threshold').value = config.velocity_threshold;
-                document.getElementById('high_risk_threshold').value = config.high_risk_threshold;
-                document.getElementById('flag_risk_threshold').value = config.flag_risk_threshold;
-                document.getElementById('amount_spike_multiplier').value = config.amount_spike_multiplier;
-                document.getElementById('baseline_amount').value = config.baseline_amount;
-                document.getElementById('anomaly_score_threshold').value = config.anomaly_score_threshold;
+                console.log('Loading thresholds...');
+                const response = await fetch(`${API_BASE}/api/v1/config`).then(r => {
+                    console.log('Config response:', r.status);
+                    if (!r.ok) throw new Error(`Config fetch failed: ${r.status}`);
+                    return r.json();
+                });
+                
+                const config = response.config || response;
+                console.log('Loaded config for thresholds:', config);
+                
+                document.getElementById('velocity_threshold').value = config.velocity_threshold || 3;
+                document.getElementById('high_risk_threshold').value = config.high_risk_threshold || 0.9;
+                document.getElementById('flag_risk_threshold').value = config.flag_risk_threshold || 0.8;
+                document.getElementById('amount_spike_multiplier').value = config.amount_spike_multiplier || 3;
+                document.getElementById('baseline_amount').value = config.baseline_amount || 1500;
+                document.getElementById('anomaly_score_threshold').value = config.anomaly_score_threshold || 0.03;
                 
                 // Update displays
-                document.getElementById('velocity_display').textContent = config.velocity_threshold;
-                document.getElementById('risk_display').textContent = config.high_risk_threshold;
-                document.getElementById('flag_display').textContent = config.flag_risk_threshold;
-                document.getElementById('spike_display').textContent = config.amount_spike_multiplier + 'x';
-                document.getElementById('baseline_display').textContent = '$' + config.baseline_amount;
-                document.getElementById('anomaly_display').textContent = config.anomaly_score_threshold;
+                document.getElementById('velocity_display').textContent = config.velocity_threshold || 3;
+                document.getElementById('risk_display').textContent = config.high_risk_threshold || 0.9;
+                document.getElementById('flag_display').textContent = config.flag_risk_threshold || 0.8;
+                document.getElementById('spike_display').textContent = (config.amount_spike_multiplier || 3) + 'x';
+                document.getElementById('baseline_display').textContent = '$' + (config.baseline_amount || 1500);
+                document.getElementById('anomaly_display').textContent = config.anomaly_score_threshold || 0.03;
             } catch (e) {
+                console.error('loadThresholds error:', e);
                 showAlert('Failed to load thresholds: ' + e.message, 'danger');
+            }
+        }
+
+        async function loadFeatures() {
+            try {
+                console.log('Loading features...');
+                const response = await fetch(`${API_BASE}/api/v1/config`).then(r => {
+                    console.log('Config response:', r.status);
+                    if (!r.ok) throw new Error(`Config fetch failed: ${r.status}`);
+                    return r.json();
+                });
+                
+                const config = response.config || response;
+                console.log('Loaded config for features:', config);
+                
+                // Update feature checkboxes from enabled_checks
+                if (config.enabled_checks) {
+                    document.getElementById('velocity').checked = config.enabled_checks.velocity || false;
+                    document.getElementById('geo_location').checked = config.enabled_checks.geo_location || false;
+                    document.getElementById('amount_spike').checked = config.enabled_checks.amount_spike || false;
+                    document.getElementById('midnight').checked = config.enabled_checks.midnight || false;
+                    document.getElementById('ml_risk_score').checked = config.enabled_checks.ml_risk_score || false;
+                    document.getElementById('anomaly_detection').checked = config.enabled_checks.anomaly_detection || false;
+                }
+                
+                // Update badges
+                const updateBadge = (id, enabled) => {
+                    const badge = document.getElementById(id + '-badge');
+                    badge.textContent = enabled ? 'Active' : 'Inactive';
+                    badge.className = 'status-badge ' + (enabled ? 'status-active' : 'status-inactive');
+                };
+                
+                if (config.enabled_checks) {
+                    updateBadge('velocity', config.enabled_checks.velocity);
+                    updateBadge('geo_location', config.enabled_checks.geo_location);
+                    updateBadge('amount_spike', config.enabled_checks.amount_spike);
+                    updateBadge('midnight', config.enabled_checks.midnight);
+                    updateBadge('ml_risk_score', config.enabled_checks.ml_risk_score);
+                    updateBadge('anomaly_detection', config.enabled_checks.anomaly_detection);
+                }
+            } catch (e) {
+                console.error('loadFeatures error:', e);
+                showAlert('Failed to load features: ' + e.message, 'danger');
             }
         }
 
@@ -780,6 +850,8 @@
                     anomaly_score_threshold: parseFloat(document.getElementById('anomaly_score_threshold').value)
                 };
 
+                console.log('Saving thresholds:', updates);
+                
                 const response = await fetch(`${API_BASE}/api/admin/config`, {
                     method: 'POST',
                     headers: {
@@ -789,9 +861,21 @@
                     body: JSON.stringify(updates)
                 });
 
-                if (!response.ok) throw new Error(await response.text());
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error:', errorText);
+                    throw new Error(`API Error (${response.status}): ${errorText}`);
+                }
+                
+                const result = await response.json();
+                console.log('Success response:', result);
                 showAlert('✅ Thresholds saved successfully!', 'success');
+                await loadThresholds(); // Reload thresholds to display saved values
+                loadOverview(); // Reload dashboard stats
             } catch (e) {
+                console.error('Save error:', e);
                 showAlert('❌ Failed to save thresholds: ' + e.message, 'danger');
             }
         }
@@ -819,6 +903,8 @@
                     anomaly_detection: document.getElementById('anomaly_detection').checked
                 };
 
+                console.log('Saving features:', enabled_checks);
+
                 const response = await fetch(`${API_BASE}/api/admin/config`, {
                     method: 'POST',
                     headers: {
@@ -828,9 +914,21 @@
                     body: JSON.stringify({ enabled_checks })
                 });
 
-                if (!response.ok) throw new Error(await response.text());
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error:', errorText);
+                    throw new Error(`API Error (${response.status}): ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('Success response:', result);
                 showAlert('✅ Feature toggles saved successfully!', 'success');
+                await loadFeatures(); // Reload features to display saved values
+                loadOverview(); // Also reload dashboard stats
             } catch (e) {
+                console.error('Save error:', e);
                 showAlert('❌ Failed to save features: ' + e.message, 'danger');
             }
         }
@@ -876,9 +974,17 @@
                 document.getElementById('preset-text').textContent = `${presetNames[presetName]} preset applied successfully!`;
                 document.getElementById('preset-message').style.display = 'block';
                 showAlert('✅ ' + presetNames[presetName] + ' preset applied!', 'success');
+                // Reload thresholds and features to display new preset values
+                await loadThresholds();
+                await loadFeatures();
+                loadOverview();
             } catch (e) {
                 showAlert('❌ Failed to apply preset: ' + e.message, 'danger');
             }
+        }
+        async function loadPresets() {
+            // Presets tab just displays the preset buttons, no loading needed
+            console.log('Presets tab loaded');
         }
 
         async function loadLogs() {
