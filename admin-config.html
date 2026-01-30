@@ -992,7 +992,10 @@
                 const response = await fetch(`${API_BASE}/api/admin/logs`, {
                     headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
                 });
-                const logs = await response.json();
+                const result = await response.json();
+                const logs = result.data || [];
+
+            
                 
                 let logsHTML = '';
                 if (logs.length === 0) {

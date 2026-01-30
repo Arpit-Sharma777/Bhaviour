@@ -672,6 +672,13 @@ async def admin_dashboard(authorization: str = Header(None)):
             FROM transactions
         """)
         stats = c.fetchone()
+
+        # --- FIX: Handle None values if DB is empty ---
+        total = stats[0] or 0
+        allowed = stats[1] or 0
+        flagged = stats[2] or 0
+        blocked = stats[3] or 0
+        # -----------------------------------------------
         
         # Recent transactions
         c.execute("SELECT * FROM transactions ORDER BY id DESC LIMIT 20")
