@@ -18,6 +18,11 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>🛡️ Bhaviour Security Admin</h2>
+            <div>
+                <a href="/customer-profile" class="btn btn-primary btn-sm me-2">👤 Customer Profiles</a>
+                <a href="/admin-config" class="btn btn-secondary btn-sm me-2">⚙️ Configuration</a>
+                <a href="/" class="btn btn-outline-secondary btn-sm">← User UI</a>
+            </div>
             <div id="connection-status" class="text-muted">Connecting...</div>
         </div>
 
@@ -40,6 +45,7 @@
                         <th>Anomaly Score</th>
                         <th>Reason</th>
                         <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="table-body"></tbody>
@@ -72,13 +78,14 @@
                     // We calculate anomaly_score display (scaled for visibility if needed)
                     
                     const row = `<tr>
-                        <td>${new Date(txn.timestamp).toLocaleTimeString()}</td>
-                        <td>${txn.user_id}</td>
+                        <td><a href="/customer-profile?user_id=${txn.user_id}" class="text-decoration-none">${txn.user_id}</a></td>
                         <td>$${txn.amount}</td>
                         <td>${txn.country}</td>
                         <td><b>${(txn.risk_score * 100).toFixed(1)}%</b></td>
                         <td>${txn.anomaly_score ? txn.anomaly_score.toFixed(3) : 'N/A'}</td>
                         <td class="reason-text">${txn.reasons || 'N/A'}</td>
+                        <td><span class="status-${txn.action}">${txn.action}</span></td>
+                        <td><a href="/customer-profile?user_id=${txn.user_id}" class="btn btn-sm btn-outline-primary">View Profile</a
                         <td><span class="status-${txn.action}">${txn.action}</span></td>
                     </tr>`;
                     tbody.innerHTML += row;

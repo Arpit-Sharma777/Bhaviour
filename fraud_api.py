@@ -700,7 +700,176 @@ async def admin_dashboard(authorization: str = Header(None)):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-# 15. Health Check Endpoint
+# 15. Customer Behavior Profile Endpoint
+@app.get("/api/customer-profile/{user_id}")
+async def get_customer_profile(user_id: str):
+    """Get comprehensive behavior profile for a specific customer."""
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        
+        # Get all transactions for this user
+        c.execute('''
+            SELECT * FROM transactions 
+            WHERE user_id = ? 
+            ORDER BY timestamp DESC 
+            LIMIT 200
+        ''', (user_id,))
+        
+        transactions = [dict(row) for row in c.fetchall()]
+        
+        if not transactions:
+            conn.close()
+            return {
+                "status": "error",
+                "message": f"No transaction history found for user {user_id}"
+            }
+        
+        # Calculate profile statistics
+        amounts = [t['amount'] for t in transactions if t['amount']]
+        risk_scores = [t['risk_score'] for t in transactions if t['risk_score']]
+        anomaly_scores = [t['anomaly_score'] for t in transactions if t['anomaly_score']]
+        
+        # Action counts
+        action_counts = {"ALLOW": 0, "FLAG": 0, "BLOCK": 0}
+        for t in transactions:
+            action_counts[t['action']] = action_counts.get(t['action'], 0) + 1
+        
+        # Country analysis
+        countries = [t['country'] for t in transactions if t['country']]
+        unique_countries = len(set(countries))
+        most_common_country = max(set(countries), key=countries.count) if countries else "N/A"
+        
+        # Time analysis
+        timestamps = []
+        for t in transactions:
+            if t['timestamp']:
+                try:
+                    ts = datetime.fromisoformat(t['timestamp'])
+                    # Remove timezone info if present to avoid comparison issues
+                    if ts.tzinfo:
+                        ts = ts.replace(tzinfo=None)
+                    timestamps.append(ts)
+                except:
+                    pass
+        
+        midnight_count = sum(1 for ts in timestamps if ts.hour in [0, 1, 2, 3, 4])
+        
+        # Calculate peak hour
+        hour_counts = {}
+        for ts in timestamps:
+            hour_counts[ts.hour] = hour_counts.get(ts.hour, 0) + 1
+        peak_hour = max(hour_counts, key=hour_counts.get) if hour_counts else 0
+        
+        # Time between transactions
+        time_diffs = []
+        for i in range(1, min(len(timestamps), 50)):
+            diff = (timestamps[i-1] - timestamps[i]).total_seconds()
+            if diff > 0:
+                time_diffs.append(diff)
+        avg_time_between = sum(time_diffs) / len(time_diffs) if time_diffs else 0
+        
+        # Risk level assessment
+        avg_risk = sum(risk_scores) / len(risk_scores) if risk_scores else 0
+        if avg_risk > 0.7 or action_counts['BLOCK'] > 5:
+            risk_level = "HIGH"
+        elif avg_risk > 0.4 or action_counts['FLAG'] > 10:
+            risk_level = "MEDIUM"
+        else:
+            risk_level = "LOW"
+        
+        # Detect behavioral patterns
+        patterns = []
+        if action_counts['BLOCK'] > 3:
+            patterns.append({
+                "pattern": "Frequent Blocks",
+                "description": f"User has {action_counts['BLOCK']} blocked transactions"
+            })
+        if midnight_count > 5:
+            patterns.append({
+                "pattern": "Midnight Activity",
+                "description": f"User has {midnight_count} transactions during unusual hours"
+            })
+        if unique_countries > 5:
+            patterns.append({
+                "pattern": "Multi-Country Usage",
+                "description": f"Transactions from {unique_countries} different countries"
+            })
+        if len(amounts) > 10:
+            amount_std = (sum((x - sum(amounts)/len(amounts))**2 for x in amounts) / len(amounts)) ** 0.5
+            amount_mean = sum(amounts) / len(amounts)
+            if amount_std / amount_mean > 1.5:
+                patterns.append({
+                    "pattern": "High Amount Variability",
+                    "description": "Transaction amounts show high variance"
+                })
+        
+        # Calculate account age - use naive datetime for comparison
+        now = datetime.now().replace(tzinfo=None)
+        first_txn = min(timestamps) if timestamps else now
+        last_txn = max(timestamps) if timestamps else now
+        account_age_days = (now - first_txn).days
+        
+        profile = {
+            "user_id": user_id,
+            "total_transactions": len(transactions),
+            "first_transaction": first_txn.isoformat(),
+            "last_transaction": last_txn.isoformat(),
+            "account_age_days": account_age_days,
+            
+            # Amount statistics
+            "avg_amount": sum(amounts) / len(amounts) if amounts else 0,
+            "median_amount": sorted(amounts)[len(amounts)//2] if amounts else 0,
+            "max_amount": max(amounts) if amounts else 0,
+            "min_amount": min(amounts) if amounts else 0,
+            "total_spent": sum(amounts) if amounts else 0,
+            "std_amount": (sum((x - sum(amounts)/len(amounts))**2 for x in amounts) / len(amounts)) ** 0.5 if amounts and len(amounts) > 1 else 0,
+            
+            # Risk metrics
+            "avg_risk_score": avg_risk,
+            "avg_anomaly_score": sum(anomaly_scores) / len(anomaly_scores) if anomaly_scores else 0,
+            "risk_level": risk_level,
+            
+            # Action counts
+            "allowed_count": action_counts['ALLOW'],
+            "flagged_count": action_counts['FLAG'],
+            "blocked_count": action_counts['BLOCK'],
+            
+            # Geographic
+            "unique_countries": unique_countries,
+            "most_common_country": most_common_country,
+            "international_count": unique_countries - 1 if unique_countries > 1 else 0,
+            
+            # Timing
+            "midnight_txn_count": midnight_count,
+            "peak_hour": peak_hour,
+            "avg_time_between_txn": avg_time_between
+        }
+        
+        conn.close()
+        
+        return {
+            "status": "success",
+            "data": {
+                "profile": profile,
+                "transactions": transactions[:50],  # Return last 50 for display
+                "patterns": patterns
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+# 16. Customer Profile UI Endpoint
+@app.get("/customer-profile", response_class=HTMLResponse)
+def customer_profile_ui():
+    """Serve customer behavior profile UI."""
+    with open("customer-profile.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+# 17. Health Check Endpoint
 @app.get("/health")
 async def health_check():
     """Check API health status."""
