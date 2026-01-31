@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /home/fraud-detection
+cd /home/ubuntu/fraud-detection
 
 # Create virtual environment if it doesn't exist
 if [ ! -d "venv" ]; then
